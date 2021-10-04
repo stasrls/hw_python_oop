@@ -4,11 +4,12 @@ import datetime as dt
 class Record:
     date_format = '%d.%m.%Y'
 
-    def __init__(self, amount, comment, date=dt.date.today()):
+    def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
-        if isinstance(date, dt.date):
-            self.date = date
+
+        if date is None:
+            self.date = dt.datetime.now().date()
         else:
             self.date = dt.datetime.strptime(date, self.date_format).date()
 
@@ -34,13 +35,19 @@ class Calculator:
         return self.get_time(1)
 
     def get_week_stats(self):
-        return self.get_time(7)
+        today_d = dt.date.today()
+        week_d = dt.date.today() - dt.timedelta(days=7)
+        amount_last_7_days_list = [
+            record.amount
+            for record in self.records
+                if record.date > week_d and record.date <= today_d
+                ]
+        return sum(amount_last_7_days_list)
 
 
 class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
-        spent = self.get_today_stats()
-        left = self.limit - spent
+        left = self.limit - self.get_today_stats()
         if left > 0:
             return (f'Сегодня можно съесть что-нибудь ещё, '
                     f'но с общей калорийностью не более {left} кКал')
@@ -54,23 +61,22 @@ class CashCalculator(Calculator):
     EURO_RATE = 70.0
 
     def get_today_cash_remained(self, currency):
-        spent = self.get_today_stats()
-        left = self.limit - spent
+        left = self.limit - self.get_today_stats()
 
         currencies = {
-            'rub': (self.RUB_RATE, 'Руб'),
-            'usd': (self.USD_RATE, 'USD'),
-            'eur': (self.EURO_RATE, 'Euro')
+            'rub': ('Руб', self.RUB_RATE),
+            'usd': ('USD', self.USD_RATE),
+            'eur': ('Euro', self.EURO_RATE)
         }
-        currency_out = (f'{round(abs(left) / currencies[currency][0], 2)} '
+        currency_output = (f'{round(abs(left) / currencies[currency][0], 2)} '
                         f'{currencies[currency][1]}')
 
         if left == 0:
             return 'Денег нет, держись'
-        if left < 0:
-            return (f'Денег нет, держись: твой долг - {currency_out}')
-
-        return (f'На сегодня осталось {currency_out}')
+        elif left > 0:
+            return f'На сегодня осталось {currency_output}'
+        else:
+            return f'Денег нет, держись: твой долг - {currency_output}'
 
 
 cash_calculator = CashCalculator(1000)
