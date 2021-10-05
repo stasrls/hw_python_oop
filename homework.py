@@ -59,24 +59,29 @@ class CashCalculator(Calculator):
     EURO_RATE = 70.0
 
     def get_today_cash_remained(self, currency):
-        left = self.limit - self.get_today_stats()
+        get_cash = self.limit - Calculator.get_today_stats(self)
+
+        if get_cash == 0:
+            return 'Денег нет, держись'
 
         currencies = {
             'rub': (self.RUB_RATE, 'Руб'),
             'usd': (self.USD_RATE, 'USD'),
             'eur': (self.EURO_RATE, 'Euro')
         }
-        currency_output = (
-            f'{round(abs(left) / currencies[currency][0], 2)}'
-            f'{currencies[currency][1]}'
-        )
+        currency_val, currency_nom = currencies[currency]
+        get_cash_convert = abs(get_cash / currency_val)
 
-        if left == 0:
-            return 'Денег нет, держись'
-        elif left > 0:
-            return f'На сегодня осталось {currency_output}'
+        if get_cash > 0:
+            return (
+                f'На сегодня осталось '
+                f'{get_cash_convert:.2f} {currency_nom}'
+            )
         else:
-            return f'Денег нет, держись: твой долг - {currency_output}'
+            return (
+                f'Денег нет, держись: твой долг - '
+                f'{get_cash_convert:.2f} {currency_nom}'
+            )
 
 
 cash_calculator = CashCalculator(1000)
