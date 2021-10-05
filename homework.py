@@ -34,15 +34,13 @@ class Calculator:
     def get_today_stats(self):
         return self.get_time(1)
 
-    def get_week_stats(self):
-        today_d = dt.date.today()
+    def get_week_stats(self) -> None:
+        amount_last_7_days = []
         week_d = dt.date.today() - dt.timedelta(days=7)
-        amount_last_7_days_list = [
-            record.amount
-            for record in self.records
-                if record.date > week_d and record.date <= today_d
-                ]
-        return sum(amount_last_7_days_list)
+        for record in self.records:
+            if record.date > week_d and record.date <= dt.date.today():
+                amount_last_7_days = amount_last_7_days.append(record)
+        return sum(amount_last_7_days)
 
 
 class CaloriesCalculator(Calculator):
@@ -64,12 +62,14 @@ class CashCalculator(Calculator):
         left = self.limit - self.get_today_stats()
 
         currencies = {
-            'rub': ('Руб', self.RUB_RATE),
-            'usd': ('USD', self.USD_RATE),
-            'eur': ('Euro', self.EURO_RATE)
+            'rub': (self.RUB_RATE, 'Руб'),
+            'usd': (self.USD_RATE, 'USD'),
+            'eur': (self.EURO_RATE, 'Euro')
         }
-        currency_output = (f'{round(abs(left) / currencies[currency][0], 2)} '
-                        f'{currencies[currency][1]}')
+        currency_output = (
+            f'{round(abs(left) / currencies[currency][0], 2)}'
+            f'{currencies[currency][1]}'
+        )
 
         if left == 0:
             return 'Денег нет, держись'
