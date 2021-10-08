@@ -2,7 +2,7 @@ import datetime as dt
 
 
 class Record:
-    date_format = '%d.%m.%Y'
+    DATE_FORMAT = '%d.%m.%Y'
 
     def __init__(self, amount, comment, date=None):
         self.amount = amount
@@ -11,7 +11,7 @@ class Record:
         if date is None:
             self.date = dt.datetime.now().date()
         else:
-            self.date = dt.datetime.strptime(date, self.date_format).date()
+            self.date = dt.datetime.strptime(date, self.DATE_FORMAT).date()
 
 
 class Calculator:
@@ -22,25 +22,25 @@ class Calculator:
     def add_record(self, record):
         self.records.append(record)
 
-    def get_time(self, days_count):
-        a_days = 0
-        past_t = dt.date.today() - dt.timedelta(days=days_count)
-        today = dt.date.today()
-        for i in self.records:
-            if i.date > past_t and i.date <= today:
-                a_days += i.amount
-        return a_days
-
     def get_today_stats(self):
-        return self.get_time(1)
+        today = dt.date.today()
+        today_amount = sum([
+            record.amount
+            for record in self.records
+            if record.date == today
+        ])
 
-    def get_week_stats(self) -> None:
-        amount_last_7_days = []
-        week_d = dt.date.today() - dt.timedelta(days=7)
-        for record in self.records:
-            if record.date > week_d and record.date <= dt.date.today():
-                amount_last_7_days = amount_last_7_days.append(record)
-        return sum(amount_last_7_days)
+        return today_amount
+
+    def get_week_stats(self):
+        today = dt.date.today()
+        week_ago = today - dt.timedelta(days=7)
+        week_amount = float(sum([
+            record.amount
+            for record in self.records
+            if record.date >= week_ago and record.date <= today]))
+
+        return week_amount
 
 
 class CaloriesCalculator(Calculator):
@@ -58,30 +58,30 @@ class CashCalculator(Calculator):
     USD_RATE = 60.0
     EURO_RATE = 70.0
 
-    def get_today_cash_remained(self, currency):
-        get_cash = self.limit - Calculator.get_today_stats(self)
+    def __init__(self, limit):
+        super().__init__(limit)
 
-        if get_cash == 0:
+    def get_today_cash_remained(self, currency):
+        left = self.limit - self.get_today_stats()
+
+        if left == 0:
             return 'Денег нет, держись'
 
         currencies = {
-            'rub': (self.RUB_RATE, 'Руб'),
-            'usd': (self.USD_RATE, 'USD'),
-            'eur': (self.EURO_RATE, 'Euro')
+            'eur': ('Euro', self.EURO_RATE),
+            'usd': ('USD', self.USD_RATE),
+            'rub': ('руб', self.RUB_RATE),
         }
-        currency_val, currency_nom = currencies[currency]
-        get_cash_convert = abs(get_cash / currency_val)
 
-        if get_cash > 0:
-            return (
-                f'На сегодня осталось '
-                f'{get_cash_convert:.2f} {currency_nom}'
-            )
-        else:
-            return (
-                f'Денег нет, держись: твой долг - '
-                f'{get_cash_convert:.2f} {currency_nom}'
-            )
+        cur, rate = currencies.get(currency)
+        left = round(left / rate, 2)
+
+        if left > 0:
+            return f'На сегодня осталось {left} {cur}'
+
+        left = abs(left)
+
+        return f'Денег нет, держись: твой долг - {left} {cur}'
 
 
 cash_calculator = CashCalculator(1000)
