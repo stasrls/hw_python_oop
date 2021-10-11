@@ -23,32 +23,35 @@ class Calculator:
         self.records.append(record)
 
     def get_today_stats(self):
-        today = dt.date.today()
         today_amount = sum([
             record.amount
             for record in self.records
-            if record.date == today
+            if record.date == dt.date.today()
         ])
 
         return today_amount
 
     def get_week_stats(self):
-        today = dt.date.today()
-        week_ago = today - dt.timedelta(days=7)
+        week_ago = dt.date.today() - dt.timedelta(days=7)
         week_amount = float(sum([
             record.amount
             for record in self.records
-            if record.date >= week_ago and record.date <= today]))
+            if week_ago <= record.date <= dt.date.today()]))
 
         return week_amount
+
+    def left_fun(self):
+        left = self.limit - self.get_today_stats()
+
+        return left
 
 
 class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
-        left = self.limit - self.get_today_stats()
-        if left > 0:
+        left_cal = self.left_fun()
+        if left_cal > 0:
             return (f'Сегодня можно съесть что-нибудь ещё, '
-                    f'но с общей калорийностью не более {left} кКал')
+                    f'но с общей калорийностью не более {left_cal} кКал')
         else:
             return 'Хватит есть!'
 
@@ -58,11 +61,8 @@ class CashCalculator(Calculator):
     USD_RATE = 60.0
     EURO_RATE = 70.0
 
-    def __init__(self, limit):
-        super().__init__(limit)
-
-    def get_today_cash_remained(self, currency):
-        left = self.limit - self.get_today_stats()
+    def get_today_cash_remained(self, currency) -> str:
+        left = self.left_fun()
 
         if left == 0:
             return 'Денег нет, держись'
@@ -82,15 +82,3 @@ class CashCalculator(Calculator):
         left = abs(left)
 
         return f'Денег нет, держись: твой долг - {left} {cur}'
-
-
-cash_calculator = CashCalculator(1000)
-
-cash_calculator.add_record(Record(amount=145, comment="кофе"))
-
-cash_calculator.add_record(Record(amount=300, comment="Серёге за обед"))
-
-cash_calculator.add_record(Record(
-    amount=3000, comment="бар в Танин др", date="08.11.2019"))
-
-print(cash_calculator.get_today_cash_remained('rub'))
