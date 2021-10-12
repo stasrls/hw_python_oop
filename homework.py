@@ -50,7 +50,7 @@ class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
         left_cal = self.left_fun()
         if left_cal > 0:
-            return (f'Сегодня можно съесть что-нибудь ещё, '
+            return ('Сегодня можно съесть что-нибудь ещё, '
                     f'но с общей калорийностью не более {left_cal} кКал')
         else:
             return 'Хватит есть!'
