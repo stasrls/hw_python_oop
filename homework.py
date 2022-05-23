@@ -2,6 +2,7 @@ import datetime as dt
 
 
 class Record:
+    """Класс для записей"""
     DATE_FORMAT = '%d.%m.%Y'
 
     def __init__(self, amount, comment, date=None):
@@ -15,6 +16,7 @@ class Record:
 
 
 class Calculator:
+    """Родительский класс"""
     def __init__(self, limit):
         self.limit = limit
         self.records = []
@@ -47,6 +49,7 @@ class Calculator:
 
 
 class CaloriesCalculator(Calculator):
+    """Калькулятор калорий"""
     def get_calories_remained(self):
         left_cal = self.left_fun()
         if left_cal > 0:
@@ -57,6 +60,7 @@ class CaloriesCalculator(Calculator):
 
 
 class CashCalculator(Calculator):
+    """Калькулятор кэша"""
     RUB_RATE = 1.0
     USD_RATE = 60.0
     EURO_RATE = 70.0
